@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+   <!-- APP PAGES -->
+<div id="app" >
+     <nav>
+    <a href="/home" onclick="showPage('dashboard')">Dashboard</a>
+    <a href="/student" onclick="showPage('students')">Students</a>
+    <a href="/attendance" onclick="showPage('attendance')">Attendance</a>
+    <a href="/grade" onclick="showPage('grades')">Grades</a>
+    <a href="/report" onclick="showPage('reports')">Reports</a>
+    <a href="/logout" class="logout" onclick="logout()">Logout</a>
+  </nav>
+
+  <div id="dashboard" class="container page">
+    <h2>Welcome to Student ERP</h2>
+    <p>Use the menu to manage students, attendance, grades, and reports.</p>
+  </div>
+
+</div>
+</body>
+</html>

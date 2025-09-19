@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student</title>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+      <nav>
+    <a href="/home" onclick="showPage('dashboard')">Dashboard</a>
+    <a href="/student" onclick="showPage('students')">Students</a>
+    <a href="/attendance" onclick="showPage('attendance')">Attendance</a>
+    <a href="/grade" onclick="showPage('grades')">Grades</a>
+    <a href="/report" onclick="showPage('reports')">Reports</a>
+    <a href="/logout" class="logout" onclick="logout()">Logout</a>
+  </nav>
+    <!-- Students -->
+<div id="attendance" class="container page ">
+    <h3>Attendance</h3>
+    <select id="studentSelect"></select>
+    <input type="date" id="attDate">
+    <select id="attStatus">
+      <option>Present</option>
+      <option>Absent</option>
+    </select>
+    <button onclick="markAttendance()">Save</button>
+    <p id="attError" style="color:red"></p>
+    <table id="attTable">
+      <tr><th>Student</th><th>Date</th><th>Status</th><th>Action</th></tr>
+    </table>
+  </div>
+</body>
+</html>

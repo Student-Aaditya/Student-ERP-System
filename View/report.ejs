@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report</title>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+    <nav>
+    <a href="/home" onclick="showPage('dashboard')">Dashboard</a>
+    <a href="/student" onclick="showPage('students')">Students</a>
+    <a href="/attendance" onclick="showPage('attendance')">Attendance</a>
+    <a href="/grade" onclick="showPage('grades')">Grades</a>
+    <a href="/report" onclick="showPage('reports')">Reports</a>
+    <a href="/logout" class="logout" onclick="logout()">Logout</a>
+  </nav>
+
+  <!-- Reports -->
+  <div id="reports" class="container page ">
+    <h3>Reports</h3>
+    <h4>Attendance Report</h4>
+    <table id="reportAtt">
+      <tr><th>Student</th><th>Total</th><th>Present</th><th>Absent</th></tr>
+    </table>
+    <h4>Grades Report</h4>
+    <table id="reportGrades">
+      <tr><th>Student</th><th>Subject</th><th>Grade</th></tr>
+    </table>
+  </div>
+</div>
+</body>
+</html>

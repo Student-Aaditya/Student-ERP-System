@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student</title>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+       <nav>
+    <a href="/home" onclick="showPage('dashboard')">Dashboard</a>
+    <a href="/student" onclick="showPage('students')">Students</a>
+    <a href="/attendance" onclick="showPage('attendance')">Attendance</a>
+    <a href="/grade" onclick="showPage('grades')">Grades</a>
+    <a href="/report" onclick="showPage('reports')">Reports</a>
+    <a href="/logout" class="logout" onclick="logout()">Logout</a>
+  </nav>
+
+    <!-- Grade -->
+ <div id="grades" class="container page ">
+    <h3>Grades</h3>
+    <select id="gradeStudent"></select>
+    <input type="text" id="subject" placeholder="Subject">
+    <input type="text" id="grade" placeholder="Grade">
+    <button onclick="addGrade()">Add</button>
+    <p id="gradeError" style="color:red"></p>
+    <table id="gradeTable">
+      <tr><th>Student</th><th>Subject</th><th>Grade</th><th>Action</th></tr>
+    </table>
+  </div>
+  <script>
+    // --- Grades ---
+  function loadGradeStudents() {
+    let sel=document.getElementById("gradeStudent");
+    sel.innerHTML="";
+    students.forEach((s,i)=> sel.innerHTML+=<option value="${i}">${s.name}</option>);
+  }
+
+  function addGrade() {
+    let i=document.getElementById("gradeStudent").value;
+    let sub=document.getElementById("subject").value.trim();
+    let g=document.getElementById("grade").value.trim();
+    if(!sub||!g){ document.getElementById("gradeError").innerText="Fill subject and grade!"; return; }
+    let dup=grades.find(x=>x.student===students[i].name && x.subject.toLowerCase()===sub.toLowerCase());
+    if(dup){ document.getElementById("gradeError").innerText="Duplicate subject for this student!"; return; }
+    grades.push({student:students[i].name, subject:sub, grade:g});
+    localStorage.setItem("grades",JSON.stringify(grades));
+    document.getElementById("gradeError").innerText="";
+    displayGrades();
+  }
+
+  function deleteGrade(index){
+    grades.splice(index,1);
+    localStorage.setItem("grades",JSON.stringify(grades));
+    displayGrades(); buildReports();
+  }
+
+  function displayGrades() {
+    let t=document.getElementById("gradeTable");
+    t.innerHTML="<tr><th>Student</th><th>Subject</th><th>Grade</th><th>Action</th></tr>";
+    grades.forEach((g,i)=> t.innerHTML+=`<tr><td>${g.student}</td><td>${g.subject}</td><td>${g.grade}</td>
+    <td><button onclick="deleteGrade(${i})">Delete</button></td></tr>`);
+  }
+  </script>
+</body>
+
+</html>
