@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student ERP System</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>NOIDA INSTITUTE OF ENGINEERING AND TECHNOLONOLOGY</header>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage" class="login-box">
+  <h2>Login</h2>
+  <input type="text" id="email" placeholder="Email"><br>
+  <input type="password" id="password" placeholder="Password"><br>
+  <button onclick="login()">Login</button>
+  <p style="text-align:center">Don't have an account? <a href="#" onclick="event.preventDefault(); showRegister()">Register</a></p>
+  <p id="error" style="color:red"></p>
+</div>
+
+<!-- REGISTER PAGE -->
+<div id="registerPage" class="login-box hidden">
+  <h2>Register</h2>
+  <input type="text" id="regEmail" placeholder="Email"><br>
+  <input type="password" id="regPass" placeholder="Password"><br>
+  <button onclick="register()">Register</button>
+  <p style="text-align:center">Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+  <p id="regError" style="color:red"></p>
+</div>
+
+<!-- APP PAGES -->
+<div id="app" class="hidden">
+  <nav>
+    <a href="#" onclick="showPage('dashboard')">Dashboard</a>
+    <a href="#" onclick="showPage('students')">Students</a>
+    <a href="#" onclick="showPage('attendance')">Attendance</a>
+    <a href="#" onclick="showPage('grades')">Grades</a>
+    <a href="#" onclick="showPage('reports')">Reports</a>
+    <a href="#" class="logout" onclick="logout()">Logout</a>
+  </nav>
+
+  <div id="dashboard" class="container page">
+    <h2>Welcome to Student ERP</h2>
+    <p>Use the menu to manage students, attendance, grades, and reports.</p>
+  </div>
+
+  <!-- Students -->
+  <div id="students" class="container page hidden">
+    <h3>Manage Students</h3>
+    <input type="hidden" id="editIndex">
+    <input type="text" id="sname" placeholder="Name">
+    <input type="text" id="sroll" placeholder="Roll No">
+    <input type="text" id="sclass" placeholder="Class">
+    <button onclick="addOrUpdateStudent()">Save</button>
+    <p id="stuError" style="color:red"></p>
+    <table id="studentTable">
+      <tr><th>Name</th><th>Roll</th><th>Class</th><th>Action</th></tr>
+    </table>
+  </div>
+
+  <!-- Attendance -->
+  <div id="attendance" class="container page hidden">
+    <h3>Attendance</h3>
+    <select id="studentSelect"></select>
+    <input type="date" id="attDate">
+    <select id="attStatus">
+      <option>Present</option>
+      <option>Absent</option>
+    </select>
+    <button onclick="markAttendance()">Save</button>
+    <p id="attError" style="color:red"></p>
+    <table id="attTable">
+      <tr><th>Student</th><th>Date</th><th>Status</th><th>Action</th></tr>
+    </table>
+  </div>
+
+  <!-- Grades -->
+  <div id="grades" class="container page hidden">
+    <h3>Grades</h3>
+    <select id="gradeStudent"></select>
+    <input type="text" id="subject" placeholder="Subject">
+    <input type="text" id="grade" placeholder="Grade">
+    <button onclick="addGrade()">Add</button>
+    <p id="gradeError" style="color:red"></p>
+    <table id="gradeTable">
+      <tr><th>Student</th><th>Subject</th><th>Grade</th><th>Action</th></tr>
+    </table>
+  </div>
+
+  <!-- Reports -->
+  <div id="reports" class="container page hidden">
+    <h3>Reports</h3>
+    <h4>Attendance Report</h4>
+    <table id="reportAtt">
+      <tr><th>Student</th><th>Total</th><th>Present</th><th>Absent</th></tr>
+    </table>
+    <h4>Grades Report</h4>
+    <table id="reportGrades">
+      <tr><th>Student</th><th>Subject</th><th>Grade</th></tr>
+    </table>
+  </div>
+</div>
+
+<script>
+  // --- Data ---
+  let students = JSON.parse(localStorage.getItem("students")) || [];
+  let attendance = JSON.parse(localStorage.getItem("attendance")) || [];
+  let grades = JSON.parse(localStorage.getItem("grades")) || [];
+  let users = JSON.parse(localStorage.getItem("users")) || [{email:"admin", password:"123"}];
+  let currentUser = null;
+
+  // --- Auth Functions ---
+  function login() {
+    let email = document.getElementById("email").value;
+    let pass = document.getElementById("password").value;
+    let user = users.find(u=>u.email===email && u.password===pass);
+    if (user) {
+      currentUser = user;
+      document.getElementById("loginPage").classList.add("hidden");
+      document.getElementById("app").classList.remove("hidden");
+      showPage("dashboard");
+      refreshAll();
+    } else {
+      document.getElementById("error").innerText="Invalid credentials!";
+    }
+  }
+
+  function register() {
+    let email=document.getElementById("regEmail").value;
+    let pass=document.getElementById("regPass").value;
+    if(!email||!pass) { document.getElementById("regError").innerText="Fill all fields!"; return; }
+    if(users.find(u=>u.email===email)) { document.getElementById("regError").innerText="User already exists!"; return; }
+    users.push({email:email, password:pass});
+    localStorage.setItem("users", JSON.stringify(users));
+    localStorage.setItem("users", JSON.stringify(users));
+    alert("Registered successfully! Now login.");
+    alert("Registered successfully! Now login.");
+    showLogin();
+  }
+
+  function showRegister() {
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("registerPage").classList.remove("hidden");
+  }
+
+  function showLogin() {
+    document.getElementById("registerPage").classList.add("hidden");
+    document.getElementById("loginPage").classList.remove("hidden");
+  }
+
+  function logout() { location.reload(); }
+
+  // --- Navigation ---
+  function showPage(id) {
+    document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));
+    document.getElementById(id).classList.remove("hidden");
+    if(id==="students") displayStudents();
+    if(id==="attendance") { loadStudentsSelect(); displayAttendance(); }
+    if(id==="grades") { loadGradeStudents(); displayGrades(); }
+    if(id==="reports") { buildReports(); }
+  }
+
+  // --- Students with Update + Delete + Unique Roll Number ---
+  function addOrUpdateStudent() {
+    let n = document.getElementById("sname").value.trim();
+    let r = document.getElementById("sroll").value.trim();
+    let c = document.getElementById("sclass").value.trim();
+    let editIndex = document.getElementById("editIndex").value;
+
+    if(!n || !r || !c) { 
+      document.getElementById("stuError").innerText = "Fill all fields!"; 
+      return; 
+    }
+
+    let editIdxNum = editIndex === "" ? -1 : parseInt(editIndex);
+
+    // Check duplicate roll number only
+    let dup = students.find((s, i) => s.roll === r && i !== editIdxNum);
+    if(dup) { 
+      document.getElementById("stuError").innerText = "Roll number already exists!"; 
+      return; 
+    }
+
+    if(editIndex === "") {
+      students.push({name: n, roll: r, class: c});
+    } else {
+      students[editIdxNum] = {name: n, roll: r, class: c};
+      document.getElementById("editIndex").value = "";
+    }
+
+    localStorage.setItem("students", JSON.stringify(students));
+    document.getElementById("sname").value = "";
+    document.getElementById("sroll").value = "";
+    document.getElementById("sclass").value = "";
+    document.getElementById("stuError").innerText = "";
+    displayStudents(); 
+    loadStudentsSelect(); 
+    loadGradeStudents();
+  }
+
+  function editStudent(index) {
+    document.getElementById("editIndex").value=index;
+    document.getElementById("sname").value=students[index].name;
+    document.getElementById("sroll").value=students[index].roll;
+    document.getElementById("sclass").value=students[index].class;
+  }
+
+  function deleteStudent(index) {
+    let studentName=students[index].name;
+    students.splice(index,1);
+    localStorage.setItem("students",JSON.stringify(students));
+
+    attendance = attendance.filter(a=>a.student!==studentName);
+    grades = grades.filter(g=>g.student!==studentName);
+    localStorage.setItem("attendance",JSON.stringify(attendance));
+    localStorage.setItem("grades",JSON.stringify(grades));
+
+    displayStudents(); displayAttendance(); displayGrades(); buildReports();
+  }
+
+  function displayStudents() {
+    let t=document.getElementById("studentTable");
+    t.innerHTML="<tr><th>Name</th><th>Roll</th><th>Class</th><th>Action</th></tr>";
+    students.forEach((s,i)=> {
+      t.innerHTML+=`<tr><td>${s.name}</td><td>${s.roll}</td><td>${s.class}</td>
+      <td>
+        <button onclick="editStudent(${i})">Edit</button>
+        <button onclick="deleteStudent(${i})">Delete</button>
+      </td></tr>`;
+    });
+  }
+
+  // --- Attendance ---
+  function loadStudentsSelect() {
+    let sel=document.getElementById("studentSelect");
+    sel.innerHTML="";
+    students.forEach((s,i)=> sel.innerHTML+=<option value="${i}">${s.name}</option>);
+  }
+
+  function markAttendance() {
+    let i=document.getElementById("studentSelect").value;
+    let d=document.getElementById("attDate").value;
+    let st=document.getElementById("attStatus").value;
+    if(!d) { document.getElementById("attError").innerText="Select date!"; return; }
+    let dup=attendance.find(a=>a.student===students[i].name && a.date===d);
+    if(dup){ document.getElementById("attError").innerText="Attendance already marked for this date!"; return; }
+    attendance.push({student:students[i].name, date:d, status:st});
+    localStorage.setItem("attendance",JSON.stringify(attendance));
+    document.getElementById("attError").innerText="";
+    displayAttendance();
+  }
+
+  function deleteAttendance(index){
+    attendance.splice(index,1);
+    localStorage.setItem("attendance",JSON.stringify(attendance));
+    displayAttendance(); buildReports();
+  }
+
+  function displayAttendance() {
+    let t=document.getElementById("attTable");
+    t.innerHTML="<tr><th>Student</th><th>Date</th><th>Status</th><th>Action</th></tr>";
+    attendance.forEach((a,i)=> t.innerHTML+=`<tr><td>${a.student}</td><td>${a.date}</td><td>${a.status}</td>
+    <td><button onclick="deleteAttendance(${i})">Delete</button></td></tr>`);
+  }
+
+  // --- Grades ---
+  function loadGradeStudents() {
+    let sel=document.getElementById("gradeStudent");
+    sel.innerHTML="";
+    students.forEach((s,i)=> sel.innerHTML+=<option value="${i}">${s.name}</option>);
+  }
+
+  function addGrade() {
+    let i=document.getElementById("gradeStudent").value;
+    let sub=document.getElementById("subject").value.trim();
+    let g=document.getElementById("grade").value.trim();
+    if(!sub||!g){ document.getElementById("gradeError").innerText="Fill subject and grade!"; return; }
+    let dup=grades.find(x=>x.student===students[i].name && x.subject.toLowerCase()===sub.toLowerCase());
+    if(dup){ document.getElementById("gradeError").innerText="Duplicate subject for this student!"; return; }
+    grades.push({student:students[i].name, subject:sub, grade:g});
+    localStorage.setItem("grades",JSON.stringify(grades));
+    document.getElementById("gradeError").innerText="";
+    displayGrades();
+  }
+
+  function deleteGrade(index){
+    grades.splice(index,1);
+    localStorage.setItem("grades",JSON.stringify(grades));
+    displayGrades(); buildReports();
+  }
+
+  function displayGrades() {
+    let t=document.getElementById("gradeTable");
+    t.innerHTML="<tr><th>Student</th><th>Subject</th><th>Grade</th><th>Action</th></tr>";
+    grades.forEach((g,i)=> t.innerHTML+=`<tr><td>${g.student}</td><td>${g.subject}</td><td>${g.grade}</td>
+    <td><button onclick="deleteGrade(${i})">Delete</button></td></tr>`);
+  }
+
+  // --- Reports ---
+  function buildReports() {
+    let report={};
+    attendance.forEach(a=>{
+      if(!report[a.student]) report[a.student]={total:0,present:0,absent:0};
+      report[a.student].total++;
+      if(a.status==="Present") report[a.student].present++;
+      else report[a.student].absent++;
+    });
+    let t=document.getElementById("reportAtt");
+    t.innerHTML="<tr><th>Student</th><th>Total</th><th>Present</th><th>Absent</th></tr>";
+    Object.keys(report).forEach(s=>{
+      let r=report[s];
+      t.innerHTML+=<tr><td>${s}</td><td>${r.total}</td><td>${r.present}</td><td>${r.absent}</td></tr>;
+    });
+
+    let tg=document.getElementById("reportGrades");
+    tg.innerHTML="<tr><th>Student</th><th>Subject</th><th>Grade</th></tr>";
+    grades.forEach(g=> tg.innerHTML+=<tr><td>${g.student}</td><td>${g.subject}</td><td>${g.grade}</td></tr>);
+  }
+
+  // --- Refresh ---
+  function refreshAll() {
+    displayStudents(); loadStudentsSelect(); displayAttendance(); loadGradeStudents(); displayGrades(); buildReports();
+  }
+</script>
+</body>
+</html>
